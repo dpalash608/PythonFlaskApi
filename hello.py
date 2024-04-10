@@ -1,11 +1,18 @@
 # Using flask to make an api
 # import necessary libraries and functions
 from flask import Flask, jsonify, request
+from evaluate import load
+import evaluate
 
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-tokenizer1 = AutoTokenizer.from_pretrained("Falconsai/text_summarization")
-model1 = AutoModelForSeq2SeqLM.from_pretrained("Falconsai/text_summarization")
+# from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+#
+# tokenizer1 = AutoTokenizer.from_pretrained("Falconsai/text_summarization")
+# model1 = AutoModelForSeq2SeqLM.from_pretrained("Falconsai/text_summarization")
+
+from transformers import pipeline
+
+summarizer = pipeline("summarization", model="Falconsai/text_summarization")
 
 # creating a Flask app
 app = Flask(__name__)
@@ -23,15 +30,28 @@ def home():
         return jsonify({'data': data})
 
 
+@app.route('/roguescore', methods=['GET'])
+def rogue():
+    rouge = evaluate.load('rouge')
+    candidates = ["Summarization is cool", "I love Machine Learning", "Good night"]
+
+    references = [["Summarization is beneficial and cool", "Summarization saves time"],
+                  ["People are getting used to Machine Learning", "I think i love Machine Learning"],
+                  ["Good night everyone!", "Night!"]
+                  ]
+    results = rouge.compute(predictions=candidates, references=references)
+    print(results)
+    return results
+
 @app.route('/home/summary', methods=['GET'])
 def disp():
-    data = request.get_json().get("data")
+    data = request.args.get('data')
     sequence = (data)
-    inputs = tokenizer1.encode(sequence, return_tensors='pt', max_length=512, truncation=True)
-    output = model1.generate(inputs, min_length=20, max_length=50)
-    summary = tokenizer1.decode(output[0])
+    summary = summarizer(sequence, max_length=1000, min_length=100, do_sample=False)
+
     print(summary)
     return summary
+
 
 # driver function
 if __name__ == '__main__':
