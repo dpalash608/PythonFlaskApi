@@ -35,6 +35,6 @@ candidates = ["Summarization is cool", "I love Machine Learning", "Good night"]
 references = [["Summarization is beneficial and cool", "Summarization saves time"],
               ["People are getting used to Machine Learning", "I think i love Machine Learning"],
               ["Good night everyone!", "Night!"]
-              ]
+                ]
 results = rouge.compute(predictions=candidates, references=references)
 print(results)
